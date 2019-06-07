@@ -58,6 +58,7 @@ ANSWER_KEY = {0: 1, 1: 4, 2: 0, 3: 3, 4: 1}
 # cv2.imwrite("img/paper.png", paper)
 image = cv2.imread(args["image"])
 paper = image.copy()
+paper = cv2.resize(paper, (760, 960))
 # paper = cv2.resize(paper, (540, 960))
 warped = cv2.cvtColor(paper, cv2.COLOR_BGR2GRAY)
 # cv2.imshow("paper",cv2.resize(paper, (540,960)))
@@ -137,7 +138,7 @@ for (q, i) in enumerate(np.arange(0, len(questionCnts), 5)):
 		correct += 1
 
 	# draw the outline of the correct answer on the test
-	cv2.drawContours(paper, [cnts[k]], -1, color, 30)
+	cv2.drawContours(paper, [cnts[k]], -1, color, 3)
 
 # grab the test taker
 paper = cv2.resize(paper,(960, 960))
