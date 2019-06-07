@@ -18,56 +18,66 @@ ANSWER_KEY = {0: 1, 1: 4, 2: 0, 3: 3, 4: 1}
 
 # load the image, convert it to grayscale, blur it
 # slightly, then find edges
-image = cv2.imread(args["image"])
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-edged = cv2.Canny(blurred, 75, 200)
-
-# find contours in the edge map, then initialize
-# the contour that corresponds to the document
-cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
-	cv2.CHAIN_APPROX_SIMPLE)
-cnts = imutils.grab_contours(cnts)
-docCnt = None
+# image = cv2.imread(args["image"])
+# gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+# blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+# edged = cv2.Canny(blurred, 75, 200)
+# cv2.imshow("edged", cv2.resize(edged, (540, 960)))
+# # cv2.waitKey(0)
+# # find contours in the edge map, then initialize
+# # the contour that corresponds to the document
+# cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
+# 	cv2.CHAIN_APPROX_SIMPLE)
+# cnts = imutils.grab_contours(cnts)
+# docCnt = None
  
-# ensure that at least one contour was found
-if len(cnts) > 0:
-	# sort the contours according to their size in
-	# descending order
-	cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
+# # ensure that at least one contour was found
+# if len(cnts) > 0:
+# 	# sort the contours according to their size in
+# 	# descending order
+# 	cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
  
-	# loop over the sorted contours
-	for c in cnts:
-		# approximate the contour
-		peri = cv2.arcLength(c, True)
-		approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+# 	# loop over the sorted contours
+# 	for c in cnts:
+# 		# approximate the contour
+# 		peri = cv2.arcLength(c, True)
+# 		approx = cv2.approxPolyDP(c, 0.02 * peri, True)
  
-		# if our approximated contour has four points,
-		# then we can assume we have found the paper
-		if len(approx) == 4:
-			docCnt = approx
-			break
+# 		# if our approximated contour has four points,
+# 		# then we can assume we have found the paper
+# 		if len(approx) == 4:
+# 			docCnt = approx
+# 			break
 
 # apply a four point perspective transform to both the
 # original image and grayscale image to obtain a top-down
 # birds eye view of the paper
-paper = four_point_transform(image, docCnt.reshape(4, 2))
-warped = four_point_transform(gray, docCnt.reshape(4, 2))
-cv2.imshow("paper", paper)
-cv2.imwrite("img/paper.png", paper)
+# paper = four_point_transform(image, docCnt.reshape(4, 2))
+# warped = four_point_transform(gray, docCnt.reshape(4, 2))
+# cv2.imshow("paper", paper)
+# cv2.imwrite("img/paper.png", paper)
+image = cv2.imread(args["image"])
+paper = image.copy()
+# paper = cv2.resize(paper, (540, 960))
+warped = cv2.cvtColor(paper, cv2.COLOR_BGR2GRAY)
+# cv2.imshow("paper",cv2.resize(paper, (540,960)))
+# cv2.imshow("warped",cv2.resize(warped, (540,960)))
+
+# cv2.waitKey(0)
 # apply Otsu's thresholding method to binarize the warped
 # piece of paper
 thresh = cv2.threshold(warped, 0, 255,
 	cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-cv2.imshow("thresh", thresh)
-cv2.imwrite("img/thresh.png", thresh)
+# cv2.imshow("thresh", cv2.resize(thresh, (540, 960)))
+# cv2.imwrite("img/thresh.png", cv2.resize(thresh, (540, 960)))
+# cv2.waitKey(0)
 # find contours in the thresholded image, then initialize
 # the list of contours that correspond to questions
 cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
 	cv2.CHAIN_APPROX_SIMPLE)
 cnts = imutils.grab_contours(cnts)
 questionCnts = []
- 
+# print(len(cnts))
 # loop over the contours
 for c in cnts:
 	# compute the bounding box of the contour, then use the
@@ -78,9 +88,10 @@ for c in cnts:
 	# in order to label the contour as a question, region
 	# should be sufficiently wide, sufficiently tall, and
 	# have an aspect ratio approximately equal to 1
-	if w >= 20 and h >= 20 and ar >= 0.9 and ar <= 1.1:
+	if w >= 21 and h >= 21 and ar >= 0.92 and ar <= 1.1:
 		questionCnts.append(c)
-
+# print(len(questionCnts))
+# cv2.waitKey(0)
 # sort the question contours top-to-bottom, then initialize
 # the total number of correct answers
 questionCnts = contours.sort_contours(questionCnts,
@@ -126,14 +137,15 @@ for (q, i) in enumerate(np.arange(0, len(questionCnts), 5)):
 		correct += 1
 
 	# draw the outline of the correct answer on the test
-	cv2.drawContours(paper, [cnts[k]], -1, color, 3)
+	cv2.drawContours(paper, [cnts[k]], -1, color, 30)
 
 # grab the test taker
+paper = cv2.resize(paper,(960, 960))
 score = (correct / 5.0) * 100
 print("[INFO] score: {:.2f}%".format(score))
 cv2.putText(paper, "{:.2f}%".format(score), (10, 30),
 	cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
-cv2.imshow("Original", image)
-cv2.imshow("Exam", paper)
+cv2.imshow("Original", cv2.resize(image, (760, 960)))
+cv2.imshow("Exam", cv2.resize(paper, (760, 960)))
 cv2.imwrite("img/exam.png", paper)
 cv2.waitKey(0)
