@@ -88,7 +88,7 @@ for c in cnts:
 	# in order to label the contour as a question, region
 	# should be sufficiently wide, sufficiently tall, and
 	# have an aspect ratio approximately equal to 1
-	if w >= 21 and h >= 21 and ar >= 0.92 and ar <= 1.1:
+	if w >= 21 and h >= 21 and ar >= 0.9 and ar <= 1.1:
 		questionCnts.append(c)
 # print(len(questionCnts))
 # cv2.waitKey(0)
